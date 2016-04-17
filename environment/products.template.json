@@ -1,0 +1,19 @@
+[
+  '{{repeat(1000)}}', 
+  {
+    _id: function (tags, index) {
+      return index;
+    },
+  aggregateRating: {
+    ratingValue: "{{floating(0,5,1)}}",
+    reviewCount: "{{integer(0,1000)}}"
+  },
+    description: "{{lorem()}}",
+    name: "{{lorem(1, 'words')}}",
+  offers: {
+    availability: "{{random('InStock', 'Discontinued', 'InStock', 'InStoreOnly', 'LimitedAvailability', 'OnlineOnly', 'OutOfStock', 'PreOrder', 'SoldOut' )}}",
+    price: "{{floating(1,10000,2)}}",
+    priceCurrency: "USD"
+  }
+}
+]
