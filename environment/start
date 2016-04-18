@@ -1,13 +1,19 @@
 #!/bin/bash
 
 # Bongo, Bongo, Bongo I Don't Want to Leave the Mongo
-mongod --dbpath /mongo/db --rest --logpath /mongo/log &
+# mongod --dbpath /mongo/db --rest --logpath /mongo/log &
 # keep trying until server starts 
-while ! mongoimport --db eshop --collection products --type json --file /mongo/products.json --jsonArray 2> /dev/null; do sleep 0.2; done
+# while ! mongoimport --db eshop --collection products --type json --file /mongo/products.json --jsonArray 2> /dev/null; do sleep 0.2; done
 
 # Hadoop
-service ssh start
-hadoop namenode -format
-start-all.sh
-hdfs dfs -mkdir -p /data
-hdfs dfs -put /hadoop/products.csv /data/products.csv
+# service ssh start
+# hadoop namenode -format
+# start-all.sh
+# hdfs dfs -mkdir -p /data
+# hdfs dfs -put /hadoop/products.csv /data/products.csv
+
+# Postgres
+service postgresql start
+psql -U postgres -c "CREATE DATABASE eshop"
+psql -U postgres -d eshop -c "CREATE TABLE product (id bigint primary key, name varchar, description varchar, price decimal(10,2), availability varchar, currency varchar, rating decimal(2,1), ratingCount int)"
+psql -U postgres -d eshop -f /postgres/products.sql > /dev/null

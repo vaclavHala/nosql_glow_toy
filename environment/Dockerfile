@@ -1,5 +1,9 @@
 FROM debian:latest
+# Barebones
 RUN apt-get -y update 
+RUN apt-get -y install nano
+RUN apt-get -y install curl
+RUN apt-get -y install net-tools
 
 # MongoDB
 RUN apt-get -y install mongodb
@@ -20,9 +24,6 @@ RUN echo "StrictHostKeyChecking no" >> /etc/ssh/ssh_config
 RUN apt-get -y install rsync
 
 EXPOSE 22
-
-# for downloading hadoop itself
-RUN apt-get -y install curl
 
 RUN mkdir -p /hadoop/hdfs
 RUN curl -o /hadoop/hadoop.tar.gz http://mirrors.sonic.net/apache/hadoop/common/hadoop-2.6.0/hadoop-2.6.0.tar.gz
@@ -46,10 +47,20 @@ ADD hdfs-site.xml $HADOOP_INSTALL/etc/hadoop/mapred-site.xml
 
 RUN mkdir -p /hadoop/hdfs/namenode
 RUN mkdir -p /hadoop/hdfs/datanode
-
 ADD products.csv /hadoop/products.csv
 
 EXPOSE 12300 12311
+
+# Postgres
+RUN apt-get -y install postgresql
+RUN perl -p -i -e 's/port = 5432/port = 54321/' /etc/postgresql/9.4/main/postgresql.conf
+RUN perl -p -i -e "s/\#listen_addresses = \'localhost\'/listen_addresses = \'*\'/" /etc/postgresql/9.4/main/postgresql.conf
+RUN perl -p -i -e 's/local\s+all\s+postgres\s+peer/host all all ::1\/128 trust\nhost all all 0.0.0.0\/0 trust\nlocal all all trust /' /etc/postgresql/9.4/main/pg_hba.conf
+
+RUN mkdir -p /postgres
+ADD products.sql /postgres/products.sql
+
+EXPOSE 54321
 
 # start script fires up servers, inits data etc.
 ADD start /start

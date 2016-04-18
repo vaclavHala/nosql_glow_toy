@@ -16,7 +16,7 @@ type totCnt struct {
 func main() {
 	flag.Parse()
 
-	flow := flow.New().Channel(HadoopProducts())
+	flow := flow.New().Channel(PostgresProducts())
 	flow.Map(func(p Product) (int, totCnt) {
 		ratingRound := math.Floor(float64(p.Rating.Value) + 0.5)
 		return int(ratingRound), totCnt{p.Offer.Price, 1}
