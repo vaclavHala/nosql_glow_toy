@@ -4,18 +4,13 @@ import (
 	"log"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/chrislusf/glow/flow"
 	"github.com/chrislusf/glow/source/hdfs"
 )
 
-func HadoopProducts() chan Product {
-	sink := make(chan Product, 100)
-	go fetchHadoop(sink)
-	return sink
-}
-
-func fetchHadoop(sink chan Product) {
+func FetchHadoop(sink chan Product, wait *sync.WaitGroup) {
 	f := flow.New()
 
 	hdfs.Source(
@@ -56,5 +51,5 @@ func fetchHadoop(sink chan Product) {
 		sink <- p
 	}).Run()
 
-	close(sink)
+	wait.Done()
 }

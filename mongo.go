@@ -2,17 +2,12 @@ package main
 
 import (
 	"log"
+"sync"
 
 	"gopkg.in/mgo.v2"
 )
 
-func MongoProducts() chan Product {
-	sink := make(chan Product, 100)
-	go fetchMongo(sink)
-	return sink
-}
-
-func fetchMongo(sink chan Product) {
+func FetchMongo(sink chan Product, wait *sync.WaitGroup) {
 	session, err := mgo.Dial("localhost")
 	if err != nil {
 		log.Fatal("Can't connect")
@@ -30,5 +25,5 @@ func fetchMongo(sink chan Product) {
 	for iter.Next(&p) {
 		sink <- p
 	}
-	close(sink)
+	wait.Done()
 }

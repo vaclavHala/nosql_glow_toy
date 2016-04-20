@@ -4,7 +4,9 @@ import (
 	"flag"
 	"fmt"
 	"math"
+	"sync"
 
+	_ "github.com/chrislusf/glow/driver"
 	"github.com/chrislusf/glow/flow"
 )
 
@@ -15,20 +17,32 @@ type totCnt struct {
 
 func main() {
 	flag.Parse()
+	sink := make(chan Product, 100)
+	var wait sync.WaitGroup
+	wait.Add(3)
 
-	flow := flow.New().Channel(PostgresProducts())
-	flow.Map(func(p Product) (int, totCnt) {
+	go FetchHadoop(sink, &wait)
+	go FetchMongo(sink, &wait)
+	go FetchPostgres(sink, &wait)
+	go func (s chan Product, w *sync.WaitGroup){
+		w.Wait()
+		close(s)
+	}(sink, &wait)
+	f := flow.New().Channel(sink)
+
+	flow.Ready()
+
+	f.Map(func(p Product) (int, totCnt) {
 		ratingRound := math.Floor(float64(p.Rating.Value) + 0.5)
 		return int(ratingRound), totCnt{p.Offer.Price, 1}
 	}).ReduceByKey(func(a totCnt, b totCnt) totCnt {
 		return totCnt{a.total + b.total, a.count + b.count}
-	}).Map(func(rating int, acc totCnt) (int, float32) {
-		return rating, acc.total / float32(acc.count)
-	}).Map(func(rating int, avg float32) {
-		fmt.Printf("rating: %d average price: %f\n", rating, avg)
+	}).Map(func(rating int, acc totCnt) {
+		fmt.Printf("rating: %d average price: %f count: %d\n",
+			rating, acc.total/float32(acc.count), acc.count)
 	})
 
-	flow.Run()
+	f.Run()
 
 	//        Map(func(line string, ch chan string) {
 	// 	for _, token := range strings.Split(line, ":") {

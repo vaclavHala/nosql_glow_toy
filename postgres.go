@@ -2,18 +2,14 @@ package main
 
 import (
 	"log"
+	"sync"
 
 	"database/sql"
+
 	_ "github.com/lib/pq"
 )
 
-func PostgresProducts() chan Product {
-	sink := make(chan Product, 100)
-	go fetchPostgres(sink)
-	return sink
-}
-
-func fetchPostgres(sink chan Product) {
+func FetchPostgres(sink chan Product, wait *sync.WaitGroup) {
 	db, err := sql.Open("postgres",
 		"host=localhost port=54321 dbname=eshop user=postgres")
 	if err != nil {
@@ -57,5 +53,5 @@ func fetchPostgres(sink chan Product) {
 				Count: ratingCount}}
 		sink <- p
 	}
-	close(sink)
+	wait.Done()
 }
