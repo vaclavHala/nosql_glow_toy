@@ -27,30 +27,11 @@ func FetchPostgres(sink chan Product, wait *sync.WaitGroup) {
 	defer rows.Close()
 
 	for rows.Next() {
-		var id int
-		var name string
-		var description string
-		var rating float32
-		var ratingCount int
-		var price float32
-		var currency string
-		var availability string
-		err = rows.Scan(&id, &name, &description, &price, &availability, &currency, &rating, &ratingCount)
-		if err != nil {
-			log.Println("Error", err)
-			continue
-		}
-		p := Product{
-			Id:          id,
-			Name:        name,
-			Description: description,
-			Offer: Offer{
-				Availability: availability,
-				Currency:     currency,
-				Price:        price},
-			Rating: Rating{
-				Value: rating,
-				Count: ratingCount}}
+		p := Product{}
+		rows.Scan(&p.Id, &p.Name, &p.Description,
+			&p.Offer.Price, &p.Offer.Availability,
+			&p.Offer.Currency,
+			&p.Rating.Value, &p.Rating.Count)
 		sink <- p
 	}
 	wait.Done()
