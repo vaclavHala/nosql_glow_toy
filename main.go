@@ -37,10 +37,12 @@ func main() {
 		return int(ratingRound), totCnt{p.Offer.Price, 1}
 	}).ReduceByKey(func(a totCnt, b totCnt) totCnt {
 		return totCnt{a.total + b.total, a.count + b.count}
-	}).Map(func(rating int, acc totCnt) {
+	}).Map(func(rating int, acc totCnt) string {
+		avg := acc.total/float32(acc.count)
 		fmt.Printf("rating: %d average price: %f count: %d\n",
-			rating, acc.total/float32(acc.count), acc.count)
-	})
+			rating, avg, acc.count)
+		return fmt.Sprintf("%d;%f;%d\n", rating, avg, acc.count)
+	}).AddOutput(SendOverNet("localhost", 12345))
 
 	f.Run()
 
