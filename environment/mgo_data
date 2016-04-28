@@ -1,0 +1,1 @@
+mongo --host localhost --port 27017 --eval "printjson(db.products.find().toArray()[0]);printjson(db.products.stats())" eshop

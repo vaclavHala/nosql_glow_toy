@@ -1,0 +1,1 @@
+go run main.go product.go hadoop.go mongo.go postgres.go netout.go

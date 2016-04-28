@@ -1,0 +1,1 @@
+hdfs dfs -cat /data/products.csv 2> /dev/null | head -1 && hdfs dfs -cat /data/products.csv 2> /dev/null | wc -l

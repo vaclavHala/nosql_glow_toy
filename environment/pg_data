@@ -1,0 +1,1 @@
+echo "select id, name, substring(description, 0, 10) as description, price, availability, currency, rating, ratingCount from product limit 10;select count(*) from product;" | psql psql -U postgres -d eshop
