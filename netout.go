@@ -3,17 +3,19 @@ package main
 import (
 	"fmt"
 	"net"
-
-	"log"
+	"errors"
 )
 
-func SendOverNet(host string, port int) chan string {
+func SendOverNet(host string, port int) (chan string, error) {
 	addr, _ :=net.ResolveTCPAddr("tcp",
 		fmt.Sprintf("%s:%d", host, port))
-	conn, _ := net.DialTCP("tcp", nil,addr)
+	conn, err := net.DialTCP("tcp", nil,addr)
+	if(err != nil){
+		return nil, errors.New(fmt.Sprintf("cant connect to %v:%v", host, port))
+	}
 	source := make(chan string)
 	go write(source, conn)
-	return source;
+	return source, nil;
 }
 
 func write(source chan string, sink *net.TCPConn){

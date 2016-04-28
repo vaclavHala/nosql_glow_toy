@@ -29,10 +29,9 @@ func main() {
 		close(s)
 	}(sink, &wait)
 	f := flow.New().Channel(sink)
-
 	flow.Ready()
 
-	f.Map(func(p Product) (int, totCnt) {
+	mapReduce := f.Map(func(p Product) (int, totCnt) {
 		ratingRound := math.Floor(float64(p.Rating.Value) + 0.5)
 		return int(ratingRound), totCnt{p.Offer.Price, 1}
 	}).ReduceByKey(func(a totCnt, b totCnt) totCnt {
@@ -40,9 +39,17 @@ func main() {
 	}).Map(func(rating int, acc totCnt) string {
 		avg := acc.total/float32(acc.count)
 		fmt.Printf("rating: %d average price: %f count: %d\n",
-			rating, avg, acc.count)
+		rating, avg, acc.count)
 		return fmt.Sprintf("%d;%f;%d\n", rating, avg, acc.count)
-	}).AddOutput(SendOverNet("localhost", 12345))
+	})
+
+	remoteOut, err := SendOverNet("localhost", 12345)
+	if(err == nil) {
+		mapReduce.AddOutput(remoteOut)
+	} else {
+		fmt.Println(err)
+		fmt.Println("Output will only be used locally")
+	}
 
 	f.Run()
 
